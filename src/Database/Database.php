@@ -15,11 +15,11 @@ final class Database
 
     public function __construct()
     {
-        $this->host = $_ENV['PGSQL_HOST'];
-        $this->port = $_ENV['PGSQL_PORT'];
-        $this->dbname = $_ENV['PGSQL_DBNAME'];
-        $this->username = $_ENV['PGSQL_USERNAME'];
-        $this->password = $_ENV['PGSQL_PASSWORD'];
+        $this->host = getenv('PGSQL_HOST');
+        $this->port = getenv('PGSQL_PORT');
+        $this->dbname = getenv('PGSQL_DBNAME');
+        $this->username = getenv('PGSQL_USERNAME');
+        $this->password = getenv('PGSQL_PASSWORD');
 
 
         try {

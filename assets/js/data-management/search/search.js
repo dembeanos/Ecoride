@@ -81,8 +81,7 @@ getResultButton.addEventListener('click', async (event) => {
     let results;
 
     try {
-        console.log(data);
-        let request = await fetch(`/Ecoride/src/Router/searchRoute.php`, {
+        let request = await fetch(`/src/Router/searchRoute.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data })
@@ -94,9 +93,9 @@ getResultButton.addEventListener('click', async (event) => {
         }
 
         results = await request.json();
-        console.log(results)
         if (results.type){
             handleResponse(results)
+            return
         }
         if (results.status === 'success') {
             currentResults = results.data;

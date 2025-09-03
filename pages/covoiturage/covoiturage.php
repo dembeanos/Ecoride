@@ -1,5 +1,9 @@
+<?php
+require_once __DIR__ . '/../../src/Authentification/auth.php';
+?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,23 +11,25 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <link rel="stylesheet" href="/assets/css/covoiturage.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="/assets/css/popup.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="/assets/css/covoiturage.css">
+    <link rel="stylesheet" href="/assets/css/popup-covoiturage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
-    <script src="/assets/js/ui/event/popup.js"></script>
-    <script type="module" src="/assets/js/ui/covoiturage/results.js"></script>
-    <script type="module" src="/assets/js/api/map/map.js"></script>
-    <script type="module" src="/assets/js/ui/menu/autocomplete.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script type="module" src="/assets/js/data-management/search/search.js"></script>
+    <script type="module" src="/assets/js/ui/covoiturage/results.js"></script>
+    <script type="module" src="/assets/js/ui/menu/autocomplete.js"></script>
+    <script type="module" src="/assets/js/api/map/map.js"></script>
+    <script src="/assets/js/ui/event/popup.js"></script>
 
     <title>Recherche de trajets - EcoRide</title>
 </head>
+
 <body>
     <header>
-        <?php include include __DIR__ . '/../../includes/header.php'; ?>
+        <?php include __DIR__ . '/../../includes/header.php'; ?>
     </header>
 
     <div class="pageIntro">
@@ -57,7 +63,6 @@
             </div>
 
             <div class="filter-group">
-                <span class="filter-title">Date de départ</span>
                 <label for="departureDate">Date de Départ :</label>
                 <input type="date" id="departureDate" name="departureDate" class="filter-date">
 
@@ -66,7 +71,6 @@
             </div>
 
             <div class="filter-group">
-                <span class="filter-title">Heure de départ</span>
                 <label for="places">
                     Nombre de places désirées :
                 </label>
@@ -83,7 +87,6 @@
                     <option value="9">9 places</option>
                 </select>
             </div>
-
             <div class="filter-group">
                 <span class="filter-title">Options supplémentaires</span>
                 <label for="smoke">
@@ -111,16 +114,12 @@
                     <option value="5">⭐⭐⭐⭐⭐</option>
                 </select>
             </div>
-
             <div class="validationBtn">
                 <button type="button" id="getResult" class="btn-apply">Rechercher</button>
                 <button type="reset" id="resetFilter" class="btn-reset">Réinitialiser les filtres</button>
             </div>
-
-            <h2>🗺️ Carte interactive des trajets</h2>
-            <div id="map"></div>
+            <button id="toggle-map" class="btn-apply">Voir la carte</button>
         </aside>
-
         <main>
             <div class="sort">
                 <label for="sortby">Trier par :</label>
@@ -132,15 +131,14 @@
                     <option value="datedepartdesc">Du - récent au + récent</option>
                 </select>
             </div>
-
             <h2>📋 Résultats de la recherche</h2>
             <div id="resultContainer"></div>
-
-            <div id="popupDetail" class="popup">
+            <!--Popup Détail-->
+            <div id="popupDetail" class="popup" style="display: none;">
                 <div class="popup-content">
                     <span id="closePopup" class="close-btn">&times;</span>
                     <h2>Détail du voyage</h2>
-                    <div id="popupDetailsContent">Chargement...</div>
+                    <div id="popupDetailsContent"></div>
                 </div>
             </div>
         </main>
@@ -148,7 +146,7 @@
 
     <div class="separation"></div>
 
-    <article classe='pub'>
+    <div class='pub'>
         <div class="pubText">
             <p>Besoin d'un hébergement ?</p>
             <p>Notre partenaire Booking vous aide dans vos réservations</p>
@@ -158,10 +156,40 @@
                 <img src="/assets/images/covoiturage/booking.png" alt="Logo Booking">
             </a>
         </div>
-    </article>
+    </div>
 
     <footer>
         <?php include __DIR__ . '/../../includes/footer.php'; ?>
     </footer>
+
+    <!-- Map mini + mini script d'affichage -->
+    <div class="offcanvas-map" id="offcanvasMap">
+        <button id="close-map" class="btn-reset">×</button>
+        <div id="map"></div>
+    </div>
+
+    <script>
+        //script map
+        const offcanvas = document.getElementById('offcanvasMap');
+        document.getElementById('toggle-map').addEventListener('click', () => {
+            offcanvas.classList.add('open');
+        });
+        document.getElementById('close-map').addEventListener('click', () => {
+            offcanvas.classList.remove('open');
+        });
+
+        //script barre recherche accueil
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const cityDepart = params.get('cityDepart');
+            const cityArrival = params.get('cityArrival');
+            const departureDate = params.get('departureDate');
+
+            if (cityDepart) document.getElementById('cityDepart').value = cityDepart;
+            if (cityArrival) document.getElementById('cityArrival').value = cityArrival;
+            if (departureDate) document.getElementById('date').value = departureDate;
+        });
+    </script>
 </body>
+
 </html>

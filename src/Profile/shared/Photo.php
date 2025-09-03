@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ .'/../../Database/Database.php';
-require_once __DIR__ .'/../../Traits/Exception.php';
+require_once __DIR__ . '/../../Database/Database.php';
+require_once __DIR__ . '/../../Traits/Exception.php';
 
 $db = new Database();
 $pdo = $db->getPdo();
 
-final class Photo {
+final class Photo
+{
 
     use ExceptionTrait;
 
@@ -27,7 +28,8 @@ final class Photo {
     }
 
     //Setters
-    private function setPhoto($photo) {
+    private function setPhoto($photo)
+    {
         //Verifictaion de l'existance de la photo
         if (isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
             //Definition d'une variable des format autorisé facilement étendable ici
@@ -51,14 +53,15 @@ final class Photo {
             $fileName = preg_replace('/[^a-zA-Z0-9._-]/', '', $fileName);
 
             //Affectation du fichier Node.js pour chargement de clamav
-            $scanFilePath = __DIR__ . '../../../node_modules/scanFiles.js';
+            $scanFilePath = __DIR__ . '/../../../assets/js/api/clamav/scanFiles.js';
 
             //Lancement du scan antivirus de l'image recu
-            $clamavCommand = 'node ' . escapeshellarg($scanFilePath) . ' ' . escapeshellarg($photo['tmp_name']);
-            $clamavScan = shell_exec($clamavCommand);
-
+            $command = 'node ' . escapeshellarg($scanFilePath) . ' ' . escapeshellarg($photo['tmp_name']);
+            error_log("CLAMAV CMD: $command");
+            $clamavScan = shell_exec($command . ' 2>&1');   // redirige stderr vers stdout
+            error_log("CLAMAV OUT: " . var_export($clamavScan, true));
             //Verification du résultat si virus trouvé information utilisateurs fichier rejeté
-            if (strpos($clamavScan, 'FOUND') !== false) {
+            if (preg_match('/FOUND$/m', $clamavScan)) {
                 return $this->sendPopup('Le fichier contient un virus et ne peut pas être enregistré.');
             }
 
@@ -90,22 +93,22 @@ final class Photo {
 
     //Fonctions Principales
 
-    public function getUserPhoto() {
+    public function getUserPhoto()
+    {
         list($table, $column, $id) = $this->getTargetTableAndColumn();
-    
+
         $query = "SELECT photo FROM $table WHERE $column = :id";
         $statement = $this->pdo->prepare($query);
         $statement->bindValue(':id', $id, PDO::PARAM_INT);
-    
+
         try {
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
-    
+
             // On récupère la photo et on la retourne en base64
             $photoContent = stream_get_contents($result['photo']);
             //et on envoir encodé 
             return 'data:image/jpeg;base64,' . base64_encode($photoContent);
-    
         } catch (PDOException $e) {
             return $this->saveLog('Erreur photo: ' . $e->getMessage(), "ID: $id", 'ERROR');
         }

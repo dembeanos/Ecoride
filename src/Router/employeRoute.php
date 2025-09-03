@@ -1,16 +1,13 @@
-<?php
-// Ce fichier suit la même logique que userRoute, voir commentaires dans userRoute.php
-
+<?php // Ce fichier suit la même logique que userRoute, voir commentaires dans userRoute.php
+session_start();
 require_once __DIR__ .'/../Profile/Employee/Employee.php';
 require_once __DIR__ .'/../Profile/Employee/OpinionManager.php';
 require_once __DIR__ .'/../Profile/shared/Photo.php';
 require_once __DIR__ .'/../Profile/shared/Secure.php';
 require_once __DIR__ .'/../Profile/shared/Messages.php';
 
-session_start();
 
 $employeId = $_SESSION['employeId'];
-
 $data = null;
 $response = null;
 
@@ -20,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['updatePhoto'])) {
     if ($photo['error'] === UPLOAD_ERR_OK) {
         $send = new Photo($pdo, null, null, $employeId);
         try {
-            $response = $send->updatePhoto($photo);
+            $send->updatePhoto($photo);
+            $response = ['status' => 'success', 'message' => 'Photo mise à jour avec succès'];
         } catch (Exception $e) {
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
@@ -30,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['updatePhoto'])) {
 } else {
     $data = json_decode(file_get_contents('php://input'), true);
 }
+
 
 
 if ($data) {

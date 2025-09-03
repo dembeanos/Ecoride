@@ -1,27 +1,24 @@
-version: '3.7'
-
 services:
-  db:
-    image: postgis/postgis
-    container_name: postgis-db
-    environment:
-      POSTGRES_USER: ${PGSQL_USERNAME}
-      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   web:
-    image: php:8.2-apache
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: web-app
     depends_on:
-      - db
+      - clamav
+    environment:
+      PGSQL_HOST: host.docker.internal
+      PGSQL_PORT: 5432
+      PGSQL_USERNAME: postgres
+      PGSQL_PASSWORD: j7krqxf8v23j42m4bjxygwr6w*
+      PGSQL_DBNAME: ecoride-14ds
     volumes:
-      - ./src:/var/www/html
+      - .:/var/www/html
     ports:
       - "8080:80"
 
-volumes:
-  pgdata:
-    driver: local
+  clamav:
+    image: mkodockx/docker-clamav:alpine
+    container_name: clamav-server
+    ports:
+      - "3310:3310"

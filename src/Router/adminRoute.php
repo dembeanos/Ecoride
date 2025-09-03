@@ -1,20 +1,18 @@
-<?php
-// Ce fichier suit la même logique que userRoute, voir commentaires dans userRoute.php
-
-require_once __DIR__ .'/../Profile/Admin/Admin.php';
-require_once __DIR__ .'/../Profile/Admin/UserManager.php';
-require_once __DIR__ .'/../Profile/Admin/EmployeManager.php';
-require_once __DIR__ .'/../Profile/Admin/OfferTrends.php';
-require_once __DIR__ .'/../Profile/shared/Photo.php';
-require_once __DIR__ .'/../Profile/shared/Secure.php';
-require_once __DIR__ .'/../Profile/Admin/Profit.php';
-require_once __DIR__ .'/../Profile/Admin/Log.php';
-require_once __DIR__ .'/../Profile/shared/Messages.php';
-
+<?php // Ce fichier suit la même logique que userRoute, voir commentaires dans userRoute.php
 session_start();
+require_once __DIR__ . '/../Profile/Admin/Admin.php';
+require_once __DIR__ . '/../Profile/Admin/UserManager.php';
+require_once __DIR__ . '/../Profile/Admin/EmployeManager.php';
+require_once __DIR__ . '/../Profile/Admin/OfferTrends.php';
+require_once __DIR__ . '/../Profile/shared/Photo.php';
+require_once __DIR__ . '/../Profile/shared/Secure.php';
+require_once __DIR__ . '/../Profile/Admin/Profit.php';
+require_once __DIR__ . '/../Profile/Admin/Log.php';
+require_once __DIR__ . '/../Profile/shared/Messages.php';
+
+
 
 $adminId = $_SESSION['adminId'];
-
 $data = null;
 $response = null;
 
@@ -22,11 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['updatePhoto'])) {
     $photo = $_FILES['updatePhoto'];
 
     if ($photo['error'] === UPLOAD_ERR_OK) {
-        $send = new Photo($pdo,null, $adminId, null);
-        try {
-            $response = $send->updatePhoto($photo);
-        } catch (Exception $e) {
-            $response = ['status' => 'error', 'message' => $e->getMessage()];
+        $send = new Photo($pdo, null, $adminId);
+
+        $result = $send->updatePhoto($photo);
+
+        if (is_array($result) && isset($result['status']) && $result['status'] === 'success') {
+            $response = $result;
+        } else {
+            $response = $result ?: ['status' => 'error', 'message' => 'Erreur inconnue lors de la mise à jour.'];
         }
     } else {
         $response = ['status' => 'error', 'message' => 'Erreur lors du téléchargement de la photo'];
@@ -45,7 +46,7 @@ if ($data) {
             $response = $adminData;
             break;
         case 'getPhoto':
-            $send = new Photo($pdo,null ,$adminId,null);
+            $send = new Photo($pdo, null, $adminId, null);
             $photoData = $send->getUserPhoto();
             $response =  $photoData;
             break;
@@ -75,7 +76,7 @@ if ($data) {
             $response = $logsData;
             break;
         case 'updatePassword':
-            $send = new Secure($pdo, null, null, $adminId);
+            $send = new Secure($pdo, null, $adminId);
             $send->setBackPassword($data['data']['backPassword'] ?? null);
             $send->setNewPassword($data['data']['newPassword'] ?? null);
             $send->setConfirmPassword($data['data']['confirmPassword'] ?? null);
@@ -103,11 +104,11 @@ if ($data) {
             $response = $banData;
             break;
         case 'banEmploye':
-                $send = new EmployeManager($pdo, $adminId);
-                $send->setBanId($data['data']['banId']);
-                $banData = $send->banUser();
-                $response = $banData;
-                break;
+            $send = new EmployeManager($pdo, $adminId);
+            $send->setBanId($data['data']['banId']);
+            $banData = $send->banUser();
+            $response = $banData;
+            break;
         default:
             $response = [
                 'type' => 'dev',
