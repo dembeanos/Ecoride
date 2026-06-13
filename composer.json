@@ -1,0 +1,6 @@
+{
+    "name": "med/ecoride",
+    "require": {
+        "mongodb/mongodb": "^2.1"
+    }
+}

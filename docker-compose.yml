@@ -1,24 +1,24 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: web-app
-    depends_on:
-      - clamav
+    build: .
+    container_name: ecoride
     environment:
-      PGSQL_HOST: host.docker.internal
+      PGSQL_HOST: 172.17.0.1
       PGSQL_PORT: 5432
       PGSQL_USERNAME: postgres
       PGSQL_PASSWORD: j7krqxf8v23j42m4bjxygwr6w*
-      PGSQL_DBNAME: ecoride-14ds
+      PGSQL_DBNAME: ecoride_14ds
     volumes:
       - .:/var/www/html
     ports:
       - "8080:80"
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
 
   clamav:
     image: mkodockx/docker-clamav:alpine
     container_name: clamav-server
+    volumes:
+      - ./clamav-socket:/var/run/clamav
     ports:
       - "3310:3310"

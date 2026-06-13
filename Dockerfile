@@ -20,6 +20,11 @@ RUN apt-get update && apt-get install -y \
     && sed -i 's/^#TCPAddr 127.0.0.1/TCPAddr 127.0.0.1/' /etc/clamav/clamd.conf \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Créer le dossier pour le socket et donner les bons droits
+RUN mkdir -p /var/run/clamav \
+    && chown clamav:clamav /var/run/clamav \
+    && chmod 755 /var/run/clamav
+    
 # 3) Activer mod_rewrite pour Apache
 RUN a2enmod rewrite
 

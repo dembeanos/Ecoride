@@ -3,7 +3,7 @@ set -e
 
 # Mettre à jour la base ClamAV
 echo "🔄 Mise à jour des définitions ClamAV..."
-freshclam --quiet
+freshclam -v
 
 # Démarrer clamd en arrière-plan
 echo "▶️ Démarrage de clamd..."
